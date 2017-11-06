@@ -49,7 +49,7 @@
 >
 >除非另有说明，出现的十进制数数据包格式图代表相应字段的字节长度。在一个给定的字节必须在一个特定的值，语法x'hh”是用来表示在这一领域的单字节值。当‘Variable’被使用，表明相应的区域有一个可变长度的定义由一个相关的（一个或两个字节）长度字段或数据类型的字段。
 
- 3. 现有的实践
+ 3. 基于TCP的客户端的过程
 
 >When a TCP-based client wishes to establish a connection to an object that is reachable only via a firewall (such determination is left up to the implementation), it must open a TCP connection to the appropriate SOCKS port on the SOCKS server system.The SOCKS service is conventionally located on TCP port 1080.If the connection request succeeds, the client enters a negotiation for the authentication method to be used, authenticates with the chosen method, then sends a relay request.The SOCKS server evaluates the request, and either establishes the appropriate connection or denies it.
 >
