@@ -10,14 +10,20 @@
 
 这个备忘录描述了一个协议，它是前一个进化的过程。版本的协议，版本4 [1]。这个新协议源于积极讨论和原型实现。
 
-    贡献者：
+   贡献者：
 
         Marcus Leech: Bell-Northern Research
+
         David Koblas: Independent Consultant
+
         Ying-Da Lee: NEC Systems Laboratory
+
         Lee: NEC Systems Laboratory
+
         LaMont Jones: Hewlett-Packard Company
+
         Ron Kuris: Unify Corporation, Matt
+
         Ganis: International Business Machines.
 
  1. 介绍
@@ -124,7 +130,7 @@
 >        | 1  |  1  | X'00' |  1   | Variable |    2     |
 >        +----+-----+-------+------+----------+----------+
 >
->     Where:
+>    Where:
 >
 > - VER    protocol version: X'05'
 > - CMD
@@ -206,7 +212,7 @@
 >        | 1  |  1  | X'00' |  1   | Variable |    2     |
 >        +----+-----+-------+------+----------+----------+
 >
->     Where:
+>    Where:
 >
 > - VER    protocol version: X'05'
 > - REP    Reply field:
@@ -262,6 +268,31 @@
 > - BND.ADDR       server bound address(服务器绑定地址)
 > - BND.PORT       server bound port in network octet order(服务器绑定的端口以网络八位字节顺序)
 >
->标有RESERVED（RSV）的域必须设置为'00'。
+>标有RESERVED（RSV）的字段必须设置为'00'。
 >
 >如果所选择的方法包括用于认证，完整性(和/或)机密性的封装，则应答被封装在依赖于方法的封装中。
+>
+>CONNECT (连接)
+>
+>In the reply to a CONNECT, BND.PORT contains the port number that the server assigned to connect to the target host, while BND.ADDR contains the associated IP address.  The supplied BND.ADDR is often different from the IP address that the client uses to reach the SOCKS server, since such servers are often multi-homed.  It is expected that the SOCKS server will use DST.ADDR and DST.PORT, and the client-side source address and port in evaluating the CONNECT request.
+>
+>CONNECT (连接)
+>
+>在对CONNECT的回复中，BND.PORT包含服务器分配用于连接目标主机的端口号，而BND.ADDR则包含关联的IP地址。 提供的BND.ADDR通常与客户端用来访问SOCKS服务器的IP地址不同，因为这些服务器通常是多宿主的。 预计SOCKS服务器将使用DST.ADDR和DST.PORT，以及客户端源地址和端口来评估CONNECT请求。
+>
+>BIND
+>
+>The BIND request is used in protocols which require the client to accept connections from the server.  FTP is a well-known example, which uses the primary client-to-server connection for commands and status reports, but may use a server-to-client connection for transferring data on demand (e.g. LS, GET, PUT).
+>
+>BIND
+>
+>BIND请求用于要求客户端接受来自服务器的连接的协议。 FTP是一个众所周知的例子，它使用主要客户端到服务器连接来执行命令和状态报告，但可以使用服务器到客户端连接来按需传送数据（例如LS，GET，PUT）。
+>
+>
+>It is expected that the client side of an application protocol will use the BIND request only to establish secondary connections after a primary connection is established using CONNECT.  In is expected that a SOCKS server will use DST.ADDR and DST.PORT in evaluating the BIND request.
+>
+>预期应用协议的客户端在使用CONNECT建立主连接之后将仅使用BIND请求建立辅助连接。 预计SOCKS服务器将在评估BIND请求时使用DST.ADDv和DST.PORT。
+>
+>Two replies are sent from the SOCKS server to the client during a BIND operation.  The first is sent after the server creates and binds a new socket.  The BND.PORT field contains the port number that the SOCKS server assigned to listen for an incoming connection.  The BND.ADDR field contains the associated IP address.  The client will typically use these pieces of information to notify (via the primary or control connection) the application server of the rendezvous address.  The second reply occurs only after the anticipated incoming connection succeeds or fails.
+>
+>在BIND操作期间，SOCKS服务器将两个应答发送到客户端。 第一个是在服务器创建并绑定一个新套接字后发送的。 BND.PORT字段包含SOCKS服务器分配用于侦听传入连接的端口号。 BND.ADDR域包含关联的IP地址。 客户端通常会使用这些信息来通知应用服务器（通过主或控制连接）集合地址。 第二个回复仅在预期的传入连接成功或失败后才会发生。
