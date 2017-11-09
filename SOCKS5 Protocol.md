@@ -130,7 +130,7 @@
 >        | 1  |  1  | X'00' |  1   | Variable |    2     |
 >        +----+-----+-------+------+----------+----------+
 >
->    Where:
+> Where:
 >
 > - VER    protocol version: X'05'
 > - CMD
@@ -195,7 +195,7 @@
 >该地址是版本4 IP地址，长度为4个八位字节
 >
 > - '03'
-> 
+>
 >地址字段包含一个完全合格的域名。 地址字段的第一个八位字节包含后面名称的八位字节数，没有终止空字节。
 >
 > - '04'
@@ -212,7 +212,7 @@
 >        | 1  |  1  | X'00' |  1   | Variable |    2     |
 >        +----+-----+-------+------+----------+----------+
 >
->    Where:
+> Where:
 >
 > - VER    protocol version: X'05'
 > - REP    Reply field:
@@ -296,3 +296,92 @@
 >Two replies are sent from the SOCKS server to the client during a BIND operation.  The first is sent after the server creates and binds a new socket.  The BND.PORT field contains the port number that the SOCKS server assigned to listen for an incoming connection.  The BND.ADDR field contains the associated IP address.  The client will typically use these pieces of information to notify (via the primary or control connection) the application server of the rendezvous address.  The second reply occurs only after the anticipated incoming connection succeeds or fails.
 >
 >在BIND操作期间，SOCKS服务器将两个应答发送到客户端。 第一个是在服务器创建并绑定一个新套接字后发送的。 BND.PORT字段包含SOCKS服务器分配用于侦听传入连接的端口号。 BND.ADDR域包含关联的IP地址。 客户端通常会使用这些信息来通知应用服务器（通过主或控制连接）集合地址。 第二个回复仅在预期的传入连接成功或失败后才会发生。
+>
+>UDP ASSOCIATE
+>
+> In the second reply, the BND.PORT and BND.ADDR fields contain the address and port number of the connecting host.
+>
+>The UDP ASSOCIATE request is used to establish an association within the UDP relay process to handle UDP datagrams.
+>
+>The DST.ADDR and DST.PORT fields contain the address and port that the client expects to use to send UDP datagrams on for the association.  The server MAY use this information to limit access to the association.  If the client is not in possesion of the information at the time of the UDP ASSOCIATE, the client MUST use a port number and address of all zeros.
+>
+>A UDP association terminates when the TCP connection that the UDP ASSOCIATE request arrived on terminates.
+>
+>In the reply to a UDP ASSOCIATE request, the BND.PORT and BND.ADDR fields indicate the port number/address where the client MUST send UDP request messages to be relayed.
+>
+>UDP ASSOCIATE(UDP关联)
+>
+>在第二个回复中，BND.PORT和BND.ADDR字段包含连接主机的地址和端口号。
+>v
+>UDP ASSOCIATE请求用于在UDP中继过程中建立关联以处理UDP数据报。
+>
+>DST.ADDR和DST.PORT字段包含客户端期望用于发送UDP数据报进行关联的地址和端口。服务器可以使用这些信息来限制对关联的访问。如果客户端在UDP ASSOCIATE时没有拥有这些信息，那么客户端必须使用一个全零的端口号和地址。
+>当UDP关联请求到达的TCP连接终止时，UDP关联终止。
+>
+>在对UDP ASSOCIATE请求的回复中，BND.PORT和BND.ADDR字段指出了客户端必须发送UDP中继请求消息的端口号/地址。
+>
+>Reply Processing(回复过程)
+>
+>When a reply (REP value other than X'00') indicates a failure, the SOCKS server MUST terminate the TCP connection shortly after sending the reply.  This must be no more than 10 seconds after detecting the condition that caused a failure.
+>
+>If the reply code (REP value of X'00') indicates a success, and the request was either a BIND or a CONNECT, the client may now start passing data.  If the selected authentication method supports encapsulation for the purposes of integrity, authentication and/or confidentiality, the data are encapsulated using the method-dependent encapsulation.  Similarly, when data arrives at the SOCKS server for the client, the server MUST encapsulate the data as appropriate for the authentication method in use.
+>
+>当回复（X'00'以外的REP值）表示失败时，SOCKS服务器必须在发送应答后立即终止TCP连接。 检测到导致故障的情况后，这个时间不能超过10秒。
+>
+>如果回复代码（X'00'的REP值）表示成功，并且请求是BIND或CONNECT，则客户端现在可以开始传递数据。 如果所选的认证方法为了完整性，认证和/或机密性的目的而支持封装，则使用依赖于方法的封装来封装数据。 同样，当数据到达客户端的SOCKS服务器时，服务器务必将数据封装为适用于正在使用的认证方法。
+
+ 7. Procedure for UDP-based clients(基于UDP的客户端的过程)
+
+>A UDP-based client MUST send its datagrams to the UDP relay server at the UDP port indicated by BND.PORT in the reply to the UDP ASSOCIATE request.  If the selected authentication method provides encapsulation for the purposes of authenticity, integrity, and/or confidentiality, the datagram MUST be encapsulated using the appropriate encapsulation.  Each UDP datagram carries a UDP request header with it:
+>
+
+      +----+------+------+----------+----------+----------+
+      |RSV | FRAG | ATYP | DST.ADDR | DST.PORT |   DATA   |
+      +----+------+------+----------+----------+----------+
+      | 2  |  1   |  1   | Variable |    2     | Variable |
+      +----+------+------+----------+----------+----------+
+
+>一个基于UDP的客户端必须发送它的数据报到UDP中继服务器，在UDP连接请求的回复中，由BND.PORT指示的UDP端口。 如果所选的认证方法为了真实性，完整性和/或机密性的目的而提供封装，则必须使用适当的封装来封装数据报。 每个UDP数据报携带一个UDP请求标题：
+
+      +----+------+------+----------+----------+----------+
+      |RSV | FRAG | ATYP | DST.ADDR | DST.PORT |   DATA   |
+      +----+------+------+----------+----------+----------+
+      | 2  |  1   |  1   | Variable |    2     | Variable |
+      +----+------+------+----------+----------+----------+
+
+>When a UDP relay server decides to relay a UDP datagram, it does so silently, without any notification to the requesting client. Similarly, it will drop datagrams it cannot or will not relay.  When a UDP relay server receives a reply datagram from a remote host, it MUST encapsulate that datagram using the above UDP request header, and any authentication-method-dependent encapsulation.
+>
+>当一个UDP中继服务器决定中继一个UDP数据报时，它会默默地执行，而不需要通知请求客户端。 同样，它将丢弃它不能或不会中继的数据报。 当一个UDP中继服务器收到来自远程主机的应答数据报时，它必须使用上面的UDP请求头和任何依赖于认证方法的封装封装该数据报。
+>
+>The UDP relay server MUST acquire from the SOCKS server the expected IP address of the client that will send datagrams to the BND.PORT given in the reply to UDP ASSOCIATE.  It MUST drop any datagrams arriving from any source IP address other than the one recorded for the particular association.
+>
+>UDP中继服务器必须从SOCKS服务器获取客户端的期望IP地址，该客户端将发送数据报给在UDP REPATE的回复中给出的BND.PORT。 它必须丢弃从任何源IP地址到达的特定关联所记录的数据报以外的任何数据报。
+>
+>The FRAG field indicates whether or not this datagram is one of a number of fragments.  If implemented, the high-order bit indicates end-of-fragment sequence, while a value of X'00' indicates that this datagram is standalone.  Values between 1 and 127 indicate the fragment position within a fragment sequence.  Each receiver will have a REASSEMBLY QUEUE and a REASSEMBLY TIMER associated with these fragments.  The reassembly queue must be reinitialized and the associated fragments abandoned whenever the REASSEMBLY TIMER expires, or a new datagram arrives carrying a FRAG field whose value is less than the highest FRAG value processed for this fragment sequence. The reassembly timer MUST be no less than 5 seconds.  It is recommended that fragmentation be avoided by applications wherever possible.
+>
+>FRAG字段指示该数据报是否是多个片段之一。 如果实施，则高位表示片段结束序列，而值X'00'表示该数据报是独立的。 1到127之间的值表示片段序列内的片段位置。 每个接收者将有一个REASSEMBLY QUEUE和一个REASSEMBLY TIMER与这些片段相关联。 重组队列必须重新初始化，并且每当REASSEMBLY TIMER过期时丢弃相关的片段，或者携带FRAG字段的新数据报到达，FRAG字段的值小于为该片段序列处理的最高FRAG值。 重组定时器必须不少于5秒钟。 建议应尽可能避免碎片。
+>
+>Implementation of fragmentation is optional; an implementation that does not support fragmentation MUST drop any datagram whose FRAG field is other than X'00'.
+>
+
+    - if ATYP is X'01' - 10+method_dependent octets smaller
+    - if ATYP is X'03' - 262+method_dependent octets smaller
+    - if ATYP is X'04' - 20+method_dependent octets smaller
+
+>
+>
+>碎片的实现是可选的; 一个不支持分片的实现必须删除FRAG字段不是X'00'的数据报。
+
+    - if ATYP is X'01' - 10+method_dependent octets smaller
+    - if ATYP is X'03' - 262+method_dependent octets smaller
+    - if ATYP is X'04' - 20+method_dependent octets smaller
+
+  8. Security Considerations(安全性考虑)
+
+>This document describes a protocol for the application-layer traversal of IP network firewalls.  The security of such traversal is highly dependent on the particular authentication and encapsulation methods provided in a particular implementation, and selected during negotiation between SOCKS client and SOCKS server.
+>
+>Careful consideration should be given by the administrator to the selection of authentication methods.
+>
+>本文档介绍了IP网络防火墙的应用层穿越协议。 这种遍历的安全性高度依赖于特定实现中提供的特定认证和封装方法，并且在SOCKS客户端和SOCKS服务器之间的协商期间被选择。
+>
+>管理员应该仔细考虑选择认证方法。
